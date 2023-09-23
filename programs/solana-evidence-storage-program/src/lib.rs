@@ -15,16 +15,21 @@ pub mod evidence_storage {
         Ok(())
     }
 
-    pub fn update(ctx: Context<AddEvidence>, evidence_hash: String) -> Result<()> {
+    pub fn add_evidence(ctx: Context<AddEvidence>, evidence_hash: String) -> Result<()> {
         let data = &mut ctx.accounts.base_account;
         let user = &mut ctx.accounts.authority;
 
-        let evidence = Evidence {
-            hash: evidence_hash,
-            user_address: *user.to_account_info().key,
-        };
-        data.evidences.push(evidence);
-        data.count += 1;
+        // if evidence hash not exist
+        let is_exist = data.evidences.iter().any(|e| e.hash == evidence_hash);
+
+        if !is_exist {
+            let evidence = Evidence {
+                hash: evidence_hash,
+                user_address: *user.to_account_info().key,
+            };
+            data.evidences.push(evidence);
+            data.count += 1;
+        }
 
         msg!("current evidences count: {}", data.count);
         Ok(())
